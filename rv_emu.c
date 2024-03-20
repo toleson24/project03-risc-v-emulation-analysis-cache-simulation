@@ -48,26 +48,131 @@ void rv_init(struct rv_state_st *rsp, uint32_t *func,
     cache_init(&rsp->i_cache);
 }
 
-void emu_r_type(struct rv_state_st *rsp, uint32_t iw) {
-    uint32_t rd = (iw >> 7) & 0b11111;
-    uint32_t rs1 = (iw >> 15) & 0b11111;
-    uint32_t rs2 = (iw >> 20) & 0b11111;
-    uint32_t funct3 = (iw >> 12) & 0b111;
-    uint32_t funct7 = (iw >> 25) & 0b1111111;
+void emu_b_type(struct rv_state *rsp, uint32_t iw) {
+	uint32_t rs1 = get_bits(iw, 15, 5);
+	uint32_t rs2 = get_bits(iw, 20, 5);
+	uint32_t funct3 = get_bits(iw, 12, 3);
+	
+	uint32_t imm12 = get_bits(iw, 31, 1);	// imm[12]
+	uint32_t imm11 = get_bits(iw, 7, 1);	// imm[11]
+	uint32_t imm10_5 = get_bits(iw, 25, 6);	// imm[10:5]
+	uint32_t imm4_1 = get_bits(iw, 8, 4);	// imm[4:1]
 
-    if (funct3 == 0b000 && funct7 == 0b0000000) {
-        rsp->regs[rd] = rsp->regs[rs1] + rsp->regs[rs2];
-    } else {
-        unsupported("R-type funct3", funct3);
-    }
-    rsp->pc += 4; // Next instruction
+	// TODO clean up shift logic into single line with OR operations	
+	imm4_1 = imm4_1 << 1;
+	imm10_5 = imm10_5 << 5;
+	imm11 = imm11 << 11;
+	imm12 = imm12 << 12;
+	uint32_t imm32 = imm12 | imm11 | imm10_5 | imm4_1;	
+	int64_t imm64 = sign_extend(imm32, 12);
+	
+	// TODO implement beq
+	if (funct3 == 0b001) {
+		// bne
+		if ((int64_t) rsp->regs[rs1] != (int64_t) rsp->regs[rs2]) {
+			rsp->pc += imm64;
+		} else {
+			rsp->pc += 4;
+		}
+	} else if (funct3 == 0b100) {
+		// blt & bgt
+		if ((int64_t) rsp->regs[rs1] < (int64_t) rsp->regs[rs2]) {
+			rsp->pc += imm64;
+		} else {
+			rsp->pc += 4;
+		}
+	} else if (funct3 == 0b101) {
+		//bge
+		if ((int64_t) rsp->regs[rs1] >= (int64_t) rsp->regs[rs2]) {
+			rsp->pc += imm64;
+		} else {
+			rsp->pc += 4;
+		}
+	} else {
+		unsupported("B-type funct3", funct3);
+	}
+}
+
+void emu_i_type(struct rv_state *rsp, uint32_t iw) {
+	uint32_t rd = get_bits(iw, 7, 5);
+	uint32_t rs1 = get_bits(iw, 15, 5);
+	uint32_t funct3 = get_bits(iw, 12, 3);
+
+	uint64_t imm11_0 = get_bits(iw, 20, 12);
+	int64_t imm64 = sign_extend(imm11_0, 12);
+
+	// TODO implement srai
+	if (funct3 == 0b000) {
+		// addi
+		rsp->regs[rd] = rsp->regs[rs1] + imm64;
+	} else if (funct3 == 0b001) {
+		// slli
+		rsp->regs[rd] = rsp->regs[rs1] << imm64;	
+	} else if (funct3 == 0b010) {
+		// lw
+		rsp->regs[rd] = *((uint32_t *) (uint64_t) (rsp->regs[rs1] + imm64));
+	} else if (funct3 == 0b101) {
+		// srli
+		rsp->regs[rd] = rsp->regs[rs1] >> imm64;
+	} else {
+		unsupported("I-type funct3", funct3);
+	}
+	rsp->pc += 4;
 }
 
 void emu_jalr(struct rv_state_st *rsp, uint32_t iw) {
-    uint32_t rs1 = (iw >> 15) & 0b1111;  // Will be ra (aka x1)
-    uint64_t val = rsp->regs[rs1];  // Value of regs[1]
+    uint32_t rs1 = (iw >> 15) & 0b1111;
+    uint64_t val = rsp->regs[rs1];
 
-    rsp->pc = val;  // PC = return address
+    rsp->pc = val;
+}
+
+void emu_j_type(struct rv_state *rsp, uint32_t iw) {
+	uint64_t imm20 = get_bits(iw, 31, 1);	
+	uint64_t imm10_1 = get_bits(iw, 21, 10);	
+	uint64_t imm11 = get_bits(iw, 19, 1);	
+	uint64_t imm19_12 = get_bits(iw, 12, 8);	
+	
+	// TODO clean up shift logic into single line with OR operations
+	imm10_1 = imm10_1 << 1;
+	imm11 = imm11 << 11;
+	imm19_12 = imm19_12 << 12;
+	imm20 = imm20 << 20;
+	uint64_t imm21 = imm20 | imm19_12 | imm11 | imm10_1;
+	uint64_t j = sign_extend(imm21, 20);
+	
+	rsp->pc += j;
+}
+
+void emu_r_type(struct rv_state *rsp, uint32_t iw) {
+	uint32_t rd = get_bits(iw, 7, 5);
+	uint32_t rs1 = get_bits(iw, 15, 5);
+	uint32_t rs2 = get_bits(iw, 20, 5);
+	uint32_t funct3 = get_bits(iw, 12, 3);
+	uint32_t funct7 = get_bits(iw, 25, 7);
+
+	if (funct3 == 0b000 && funct7 == 0b0000000) {
+		// add
+		rsp->regs[rd] = rsp->regs[rs1] + rsp->regs[rs2];
+	} else if (funct3 == 0b000 && funct7 == 0b0100000) {
+		// sub
+		rsp->regs[rd] = rsp->regs[rs1] - rsp->regs[rs2];
+	} else if (funct3 == 0b001 && funct7 == 0b0000000) {
+		// sll
+		rsp->regs[rd] = rsp->regs[rs1] << rsp->regs[rs2];
+	} else if (funct3 == 0b101 && funct7 == 0b0000000) {
+		// srl
+		rsp->regs[rd] = rsp->regs[rs1] >> rsp->regs[rs2];
+	} else if (funct3 == 0b000 && funct7 == 0b0000001) {
+		// mul
+		rsp->regs[rd] = rsp->regs[rs1] * rsp->regs[rs2];
+	} else if (funct3 == 0b111 && funct7 == 0b0000000) {
+		// and
+		rsp->regs[rd] = rsp->regs[rs1] & rsp->regs[rs2];
+	} else {
+        unsupported("R-type funct3", funct3);
+	}
+	rsp->pc += 4;
 }
 
 static void rv_one(struct rv_state_st *rsp) {
@@ -93,6 +198,40 @@ static void rv_one(struct rv_state_st *rsp) {
             unsupported("Unknown opcode: ", opcode);
     }
 }
+
+// below is the rv_one() func from lab05
+/*
+void rv_one(struct rv_state *rsp) {
+	uint32_t iw = *(uint32_t*) rsp->pc;
+
+	uint32_t opcode = iw & 0b1111111;
+	switch (opcode) {
+		case 0b1100011:
+			// B-type instructions
+			emu_b_type(rsp, iw);
+			break;
+		case 0b0000011:
+		case 0b0010011:
+			// I-type instructions have one register operand
+			emu_i_type(rsp, iw);
+			break;
+		case 0b0110011:
+			// R-type instructions have two register operands
+			emu_r_type(rsp, iw);
+			break;
+		case 0b1100111:
+			// JALR (aka RET) is a variant of I-type instructions
+			emu_jalr(rsp, iw);
+			break;
+		case 0b1101111:
+			// J-type instructions
+			emu_j_type(rsp, iw);
+			break;
+		default:
+			unsupported("Unknown opcode: ", opcode);  
+	}
+}
+*/
 
 uint64_t rv_emulate(struct rv_state_st *rsp) {
     while (rsp->pc != RV_STOP) {
