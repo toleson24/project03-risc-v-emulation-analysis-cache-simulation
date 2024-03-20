@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "rv_emu.h"
+#include "bits.h"
 
 #define DEBUG 0
 
