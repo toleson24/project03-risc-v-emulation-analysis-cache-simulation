@@ -119,7 +119,7 @@ void emu_i_type(struct rv_state_st *rsp, uint32_t iw) {
 	} else if (funct3 == 0b001) {
 		// slli
 		rsp->regs[rd] = rsp->regs[rs1] << imm64;	
-		rsp->analysis.i_count += 1;
+		rsp->analysis.ir_count += 1;
 	} else if (funct3 == 0b010) {
 		// lw
 		rsp->regs[rd] = *((uint32_t *) (uint64_t) (rsp->regs[rs1] + imm64));
@@ -132,11 +132,11 @@ void emu_i_type(struct rv_state_st *rsp, uint32_t iw) {
 	} else if (funct3 == 0b101) {
 		// srli
 		rsp->regs[rd] = rsp->regs[rs1] >> imm64;
-		rsp->analysis.i_count += 1;
+		rsp->analysis.ir_count += 1;
 	} else if (funct3 == 0b101 && (imm11_0 >> 5) == 0b0100000) {
 		// srai
 		rsp->regs[rd] = (int64_t) (rsp->regs[rs1] >> imm64);
-		rsp->analysis.i_count += 1;
+		rsp->analysis.ir_count += 1;
 	} else {
 		unsupported("I-type funct3", funct3);
 	}
@@ -242,19 +242,24 @@ static void rv_one(struct rv_state_st *rsp) {
 	switch (opcode) {
 		case FMT_B:
 			emu_b_type(rsp, iw);
+			rsp->analysis.i_count += 1;
 			break;
 		case FMT_I_LOAD:
 		case FMT_I_ARITH:
 			emu_i_type(rsp, iw);
+			rsp->analysis.i_count += 1;
 			break;
 		case FMT_R:
 			emu_r_type(rsp, iw);
+			rsp->analysis.i_count += 1;
 			break;
 		case FMT_I_JALR:
 			emu_jalr(rsp, iw);
+			rsp->analysis.i_count += 1;
 			break;
 		case FMT_J:
 			emu_j_type(rsp, iw);
+			rsp->analysis.i_count += 1;
 			break;
 		default:
 			unsupported("Unknown opcode: ", opcode);  
