@@ -144,7 +144,7 @@ void emu_l_type(struct rv_state_st *rsp, uint32_t iw) {
 
 	if (funct3 == 0b000) {
 		// lb
-		rsp->regs[rd] = *((uint8_t *) (uint8_t) (rsp->regs[rs1] + imm64));
+		rsp->regs[rd] = *((uint8_t *) (rsp->regs[rs1] + imm64));
 		rsp->analysis.ir_count += 1;
 	} else if (funct3 == 0b010) {
 		// lw
@@ -231,16 +231,16 @@ void emu_s_type(struct rv_state_st *rsp, uint32_t iw) {
 	uint64_t addr = rsp->regs[rs2] + imm64;
 	if (funct3 == 0b000) {
 		// sb
-		// TODO ask if this makes sense
-		*((uint8_t *) addr) = rsp->regs[rs1] & 0xFF; // mask w size ?
+		//*((uint8_t *) addr) = rsp->regs[rs1] & 0xFF;
+		*((uint8_t *) (rsp->regs[rs2] + imm64)) = rsp->regs[rs1] & 0xFF;
 	} else if (funct3 == 0b0101) {
 		// sw
-		// TODO update with word specifics
-		rsp->regs[rs2 + imm64] = rsp->regs[rs1];
+		//*((uint32_t *) addr) = rsp->regs[rs1] & 0xFFFFFFFF;
+		*((uint32_t *) (rsp->regs[rs2] + imm64)) = rsp->regs[rs1] & 0xFFFFFFFF;
 	} else if (funct3 == 0b011) {
 		// sd
-		// TODO update with double specifics
-		rsp->regs[rs2 + imm64] = rsp->regs[rs1];
+		//*((uint64_t *) addr) = rsp->regs[rs1] & 0xFFFFFFFFFFFFFFFF;
+		*((uint64_t *) (rsp->regs[rs2] + imm64)) = rsp->regs[rs1] & 0xFFFFFFFFFFFFFFFF;
 	} else {
 		unsupported("S-type funct3", funct3);
 	}
@@ -263,16 +263,11 @@ static void rv_one(struct rv_state_st *rsp) {
 			rsp->analysis.i_count += 1;
 			break;
 		case FMT_I_LOAD:
-			// TODO 
 			emu_l_type(rsp, iw);
 			rsp->analysis.i_count += 1;
 			break;
 		case FMT_I_ARITH:
 			emu_i_type(rsp, iw);
-			rsp->analysis.i_count += 1;
-			break;
-		case FMT_R:
-			emu_r_type(rsp, iw);
 			rsp->analysis.i_count += 1;
 			break;
 		case FMT_I_JALR:
@@ -281,6 +276,10 @@ static void rv_one(struct rv_state_st *rsp) {
 			break;
 		case FMT_J:
 			emu_j_type(rsp, iw);
+			rsp->analysis.i_count += 1;
+			break;
+		case FMT_R:
+			emu_r_type(rsp, iw);
 			rsp->analysis.i_count += 1;
 			break;
 		case FMT_S:
