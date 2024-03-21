@@ -49,7 +49,7 @@ void rv_init(struct rv_state_st *rsp, uint32_t *func,
     cache_init(&rsp->i_cache);
 }
 
-void emu_b_type(struct rv_state *rsp, uint32_t iw) {
+void emu_b_type(struct rv_state_st *rsp, uint32_t iw) {
 	uint32_t rs1 = get_bits(iw, 15, 5);
 	uint32_t rs2 = get_bits(iw, 20, 5);
 	uint32_t funct3 = get_bits(iw, 12, 3);
@@ -89,7 +89,7 @@ void emu_b_type(struct rv_state *rsp, uint32_t iw) {
 	}
 }
 
-void emu_i_type(struct rv_state *rsp, uint32_t iw) {
+void emu_i_type(struct rv_state_st *rsp, uint32_t iw) {
 	uint32_t rd = get_bits(iw, 7, 5);
 	uint32_t rs1 = get_bits(iw, 15, 5);
 	uint32_t funct3 = get_bits(iw, 12, 3);
@@ -123,7 +123,7 @@ void emu_jalr(struct rv_state_st *rsp, uint32_t iw) {
     rsp->pc = val;
 }
 
-void emu_j_type(struct rv_state *rsp, uint32_t iw) {
+void emu_j_type(struct rv_state_st *rsp, uint32_t iw) {
 	uint64_t imm20 = get_bits(iw, 31, 1);	
 	uint64_t imm10_1 = get_bits(iw, 21, 10);	
 	uint64_t imm11 = get_bits(iw, 19, 1);	
@@ -135,7 +135,7 @@ void emu_j_type(struct rv_state *rsp, uint32_t iw) {
 	rsp->pc += j;
 }
 
-void emu_r_type(struct rv_state *rsp, uint32_t iw) {
+void emu_r_type(struct rv_state_st *rsp, uint32_t iw) {
 	uint32_t rd = get_bits(iw, 7, 5);
 	uint32_t rs1 = get_bits(iw, 15, 5);
 	uint32_t rs2 = get_bits(iw, 20, 5);
@@ -192,28 +192,34 @@ static void rv_one(struct rv_state_st *rsp) {
 
 // below is the rv_one() func from lab05
 /*
-void rv_one(struct rv_state *rsp) {
+void rv_one(struct rv_state_st *rsp) {
 	uint32_t iw = *(uint32_t*) rsp->pc;
 
 	uint32_t opcode = iw & 0b1111111;
 	switch (opcode) {
+		case FMT_B:
 		case 0b1100011:
 			// B-type instructions
 			emu_b_type(rsp, iw);
 			break;
+		case FMT_I_LOAD:
+		case FMT_I_ARITH:
 		case 0b0000011:
 		case 0b0010011:
 			// I-type instructions have one register operand
 			emu_i_type(rsp, iw);
 			break;
+		case FMT_R:
 		case 0b0110011:
 			// R-type instructions have two register operands
 			emu_r_type(rsp, iw);
 			break;
+		case FMT_I_JALR:
 		case 0b1100111:
 			// JALR (aka RET) is a variant of I-type instructions
 			emu_jalr(rsp, iw);
 			break;
+		case FMT_J:
 		case 0b1101111:
 			// J-type instructions
 			emu_j_type(rsp, iw);
