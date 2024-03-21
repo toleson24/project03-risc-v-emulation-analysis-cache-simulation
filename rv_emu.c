@@ -97,7 +97,6 @@ void emu_i_type(struct rv_state_st *rsp, uint32_t iw) {
 	uint64_t imm11_0 = get_bits(iw, 20, 12);
 	int64_t imm64 = sign_extend(imm11_0, 12);
 
-	// TODO implement srai
 	if (funct3 == 0b000) {
 		// addi
 		rsp->regs[rd] = rsp->regs[rs1] + imm64;
@@ -110,6 +109,9 @@ void emu_i_type(struct rv_state_st *rsp, uint32_t iw) {
 	} else if (funct3 == 0b101) {
 		// srli
 		rsp->regs[rd] = rsp->regs[rs1] >> imm64;
+	} else if (funct3 == 0b101 && (imm32 >> 5) == 0b0100000) {
+		// srai
+		rsp->regs[rd] = (int64_t) (rsp->regs[rs1] >> imm64);
 	} else {
 		unsupported("I-type funct3", funct3);
 	}
