@@ -213,68 +213,35 @@ void emu_s_type(struct rv_state_st *rsp, uint32_t iw) {
 }
 
 static void rv_one(struct rv_state_st *rsp) {
-    uint32_t iw  = *((uint32_t*) rsp->pc);
+	uint32_t iw = *(uint32_t*) rsp->pc;
     //iw = cache_lookup(&rsp->i_cache, (uint64_t) rsp->pc);
-
-    uint32_t opcode = iw & 0b1111111;
 
 #if DEBUG
     printf("iw: %08x\n", iw);
 #endif
 
-    switch (opcode) {
-        case FMT_R:
-            // R-type instructions have two register operands
-            emu_r_type(rsp, iw);
-            break;
-        case FMT_I_JALR:
-            // JALR (aka RET) is a variant of I-type instructions
-            emu_jalr(rsp, iw);
-            break;
-        default:
-            unsupported("Unknown opcode: ", opcode);
-    }
-}
-
-// below is the rv_one() func from lab05
-/*
-void rv_one(struct rv_state_st *rsp) {
-	uint32_t iw = *(uint32_t*) rsp->pc;
-
 	uint32_t opcode = iw & 0b1111111;
 	switch (opcode) {
 		case FMT_B:
-		case 0b1100011:
-			// B-type instructions
 			emu_b_type(rsp, iw);
 			break;
 		case FMT_I_LOAD:
 		case FMT_I_ARITH:
-		case 0b0000011:
-		case 0b0010011:
-			// I-type instructions have one register operand
 			emu_i_type(rsp, iw);
 			break;
 		case FMT_R:
-		case 0b0110011:
-			// R-type instructions have two register operands
 			emu_r_type(rsp, iw);
 			break;
 		case FMT_I_JALR:
-		case 0b1100111:
-			// JALR (aka RET) is a variant of I-type instructions
 			emu_jalr(rsp, iw);
 			break;
 		case FMT_J:
-		case 0b1101111:
-			// J-type instructions
 			emu_j_type(rsp, iw);
 			break;
 		default:
 			unsupported("Unknown opcode: ", opcode);  
 	}
 }
-*/
 
 uint64_t rv_emulate(struct rv_state_st *rsp) {
     while (rsp->pc != RV_STOP) {
