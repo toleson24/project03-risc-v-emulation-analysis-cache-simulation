@@ -211,10 +211,11 @@ void emu_s_type(struct rv_state_st *rsp, uint32_t iw) {
 	uint32_t imm32 = (imm11_5 << 5) | imm4_0;	
 	int64_t imm64 = sign_extend(imm32, 11);
 	
+	uint64_t addr = rsp->regs[rs2] + imm64;
 	if (funct3 == 0b000) {
 		// sb
 		// TODO ask if this makes sense
-		rsp->regs[rs2 + imm64] = rsp->regs[rs1];
+		*((uint8_t *) addr) = rsp->regs[rs1] & 0xFF; // mask w size ?
 	} else if (funct3 == 0b0101) {
 		// sw
 		// TODO update with word specifics
@@ -245,6 +246,10 @@ static void rv_one(struct rv_state_st *rsp) {
 			rsp->analysis.i_count += 1;
 			break;
 		case FMT_I_LOAD:
+			// TODO 
+			emu_l_type(rsp, iw);
+			rsp->analysis.i_count += 1;
+			break;
 		case FMT_I_ARITH:
 			emu_i_type(rsp, iw);
 			rsp->analysis.i_count += 1;
@@ -259,6 +264,10 @@ static void rv_one(struct rv_state_st *rsp) {
 			break;
 		case FMT_J:
 			emu_j_type(rsp, iw);
+			rsp->analysis.i_count += 1;
+			break;
+		case FMT_S:
+			emu_s_type(rsp, iw);
 			rsp->analysis.i_count += 1;
 			break;
 		default:
