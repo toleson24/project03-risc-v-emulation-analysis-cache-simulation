@@ -59,12 +59,7 @@ void emu_b_type(struct rv_state *rsp, uint32_t iw) {
 	uint32_t imm10_5 = get_bits(iw, 25, 6);	// imm[10:5]
 	uint32_t imm4_1 = get_bits(iw, 8, 4);	// imm[4:1]
 
-	// TODO clean up shift logic into single line with OR operations	
-	imm4_1 = imm4_1 << 1;
-	imm10_5 = imm10_5 << 5;
-	imm11 = imm11 << 11;
-	imm12 = imm12 << 12;
-	uint32_t imm32 = imm12 | imm11 | imm10_5 | imm4_1;	
+	uint32_t imm32 = (imm12 << 12) | (imm11 << 11) | (imm10_5 << 5) | (imm4_1 << 1);	
 	int64_t imm64 = sign_extend(imm32, 12);
 	
 	// TODO implement beq
@@ -134,12 +129,7 @@ void emu_j_type(struct rv_state *rsp, uint32_t iw) {
 	uint64_t imm11 = get_bits(iw, 19, 1);	
 	uint64_t imm19_12 = get_bits(iw, 12, 8);	
 	
-	// TODO clean up shift logic into single line with OR operations
-	imm10_1 = imm10_1 << 1;
-	imm11 = imm11 << 11;
-	imm19_12 = imm19_12 << 12;
-	imm20 = imm20 << 20;
-	uint64_t imm21 = imm20 | imm19_12 | imm11 | imm10_1;
+	uint64_t imm21 = (imm20 << 20) | (imm19_12 << 12) | (imm11 << 11) | (imm10_1 << 1);
 	uint64_t j = sign_extend(imm21, 20);
 	
 	rsp->pc += j;
