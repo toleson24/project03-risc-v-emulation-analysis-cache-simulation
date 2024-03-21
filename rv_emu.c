@@ -174,6 +174,32 @@ void emu_r_type(struct rv_state_st *rsp, uint32_t iw) {
 	rsp->pc += 4;
 }
 
+void emu_s_type(struct rv_state_st *rsp, uint32_t iw) {
+	uint32_t rs1 = get_bits(iw, 15, 5);
+	uint32_t rs2 = get_bits(iw, 20, 5);
+	uint32_t funct3 = get_bits(iw, 12, 3);
+	
+	uint32_t imm11_5 = get_bits(iw, 25, 7);	// imm[11:5]
+	uint32_t imm4_0 = get_bits(iw, 7, 5);	// imm[4:0]
+
+	uint32_t imm32 = (imm11_5 << 5) | imm4_0;	
+	int64_t imm64 = sign_extend(imm32, 11);
+	
+	if (funct3 == 0b000) {
+		// sb
+		// TODO
+	} else if (funct3 == 0b0101) {
+		// sw
+		// TODO
+	} else if (funct3 == 0b011) {
+		// sd
+		// TODO
+	} else {
+		unsupported("S-type funct3", funct3);
+	}
+	rsp->pc += 4;
+}
+
 static void rv_one(struct rv_state_st *rsp) {
     uint32_t iw  = *((uint32_t*) rsp->pc);
     //iw = cache_lookup(&rsp->i_cache, (uint64_t) rsp->pc);
