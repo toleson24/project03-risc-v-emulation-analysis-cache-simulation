@@ -66,29 +66,37 @@ void emu_b_type(struct rv_state_st *rsp, uint32_t iw) {
 		// beq
 		if ((int64_t) rsp->regs[rs1] == (int64_t) rsp->regs[rs2]) {
 			rsp->pc += imm64;
+			rsp->analysis.b_taken += 1;
 		} else {
 			rsp->pc += 4;
+			rsp->analysis.b_not_taken += 1;
 		}
 	} else if (funct3 == 0b001) {
 		// bne
 		if ((int64_t) rsp->regs[rs1] != (int64_t) rsp->regs[rs2]) {
 			rsp->pc += imm64;
+			rsp->analysis.b_taken += 1;
 		} else {
 			rsp->pc += 4;
+			rsp->analysis.b_not_taken += 1;
 		}
 	} else if (funct3 == 0b100) {
 		// blt & bgt
 		if ((int64_t) rsp->regs[rs1] < (int64_t) rsp->regs[rs2]) {
 			rsp->pc += imm64;
+			rsp->analysis.b_taken += 1;
 		} else {
 			rsp->pc += 4;
+			rsp->analysis.b_not_taken += 1;
 		}
 	} else if (funct3 == 0b101) {
 		// bge & ble
 		if ((int64_t) rsp->regs[rs1] >= (int64_t) rsp->regs[rs2]) {
 			rsp->pc += imm64;
+			rsp->analysis.b_taken += 1;
 		} else {
 			rsp->pc += 4;
+			rsp->analysis.b_not_taken += 1;
 		}
 	} else {
 		unsupported("B-type funct3", funct3);
@@ -107,22 +115,28 @@ void emu_i_type(struct rv_state_st *rsp, uint32_t iw) {
 		// addi
 		// TODO ask if same logic for lb for addi ?
 		rsp->regs[rd] = rsp->regs[rs1] + imm64;
+		rsp->analysis.ir_count += 1;
 	} else if (funct3 == 0b001) {
 		// slli
 		rsp->regs[rd] = rsp->regs[rs1] << imm64;	
+		rsp->analysis.i_count += 1;
 	} else if (funct3 == 0b010) {
 		// lw
 		rsp->regs[rd] = *((uint32_t *) (uint64_t) (rsp->regs[rs1] + imm64));
+		rsp->analysis.ld_count += 1;
 	} else if (funct3 == 0b011) {
 		// ld
 		// TODO ask if same logic for ld as for lw ?
 		rsp->regs[rd] = *((uint64_t *) (uint64_t) (rsp->regs[rs1] + imm64));
+		rsp->analysis.ld_count += 1;
 	} else if (funct3 == 0b101) {
 		// srli
 		rsp->regs[rd] = rsp->regs[rs1] >> imm64;
+		rsp->analysis.i_count += 1;
 	} else if (funct3 == 0b101 && (imm11_0 >> 5) == 0b0100000) {
 		// srai
 		rsp->regs[rd] = (int64_t) (rsp->regs[rs1] >> imm64);
+		rsp->analysis.i_count += 1;
 	} else {
 		unsupported("I-type funct3", funct3);
 	}
@@ -133,6 +147,7 @@ void emu_jalr(struct rv_state_st *rsp, uint32_t iw) {
     uint32_t rs1 = (iw >> 15) & 0b1111;
     uint64_t val = rsp->regs[rs1];
 
+	rsp->analysis.j_count += 1;
     rsp->pc = val;
 }
 
@@ -145,6 +160,7 @@ void emu_j_type(struct rv_state_st *rsp, uint32_t iw) {
 	uint64_t imm21 = (imm20 << 20) | (imm19_12 << 12) | (imm11 << 11) | (imm10_1 << 1);
 	uint64_t j = sign_extend(imm21, 20);
 	
+	rsp->analysis.j_count += 1;
 	rsp->pc += j;
 }
 
@@ -180,6 +196,7 @@ void emu_r_type(struct rv_state_st *rsp, uint32_t iw) {
 	} else {
         unsupported("R-type funct3", funct3);
 	}
+	rsp->analysis.ir_count += 1;
 	rsp->pc += 4;
 }
 
@@ -209,6 +226,7 @@ void emu_s_type(struct rv_state_st *rsp, uint32_t iw) {
 	} else {
 		unsupported("S-type funct3", funct3);
 	}
+	rsp->analysis.st_count += 1;
 	rsp->pc += 4;
 }
 
