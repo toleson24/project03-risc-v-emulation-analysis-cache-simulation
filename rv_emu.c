@@ -120,7 +120,7 @@ void emu_i_type(struct rv_state_st *rsp, uint32_t iw) {
 	} else if (funct3 == 0b101) {
 		// srli
 		rsp->regs[rd] = rsp->regs[rs1] >> imm64;
-	} else if (funct3 == 0b101 && (imm32 >> 5) == 0b0100000) {
+	} else if (funct3 == 0b101 && (imm11_0 >> 5) == 0b0100000) {
 		// srai
 		rsp->regs[rd] = (int64_t) (rsp->regs[rs1] >> imm64);
 	} else {
@@ -196,13 +196,16 @@ void emu_s_type(struct rv_state_st *rsp, uint32_t iw) {
 	
 	if (funct3 == 0b000) {
 		// sb
-		// TODO
+		// TODO ask if this makes sense
+		rsp->regs[rs2 + imm64] = rsp->regs[rs1];
 	} else if (funct3 == 0b0101) {
 		// sw
-		// TODO
+		// TODO update with word specifics
+		rsp->regs[rs2 + imm64] = rsp->regs[rs1];
 	} else if (funct3 == 0b011) {
 		// sd
-		// TODO
+		// TODO update with double specifics
+		rsp->regs[rs2 + imm64] = rsp->regs[rs1];
 	} else {
 		unsupported("S-type funct3", funct3);
 	}
