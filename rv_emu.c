@@ -105,6 +105,7 @@ void emu_i_type(struct rv_state_st *rsp, uint32_t iw) {
 
 	if (funct3 == 0b000) {
 		// addi
+		// TODO ask if same logic for lb for addi ?
 		rsp->regs[rd] = rsp->regs[rs1] + imm64;
 	} else if (funct3 == 0b001) {
 		// slli
@@ -112,6 +113,10 @@ void emu_i_type(struct rv_state_st *rsp, uint32_t iw) {
 	} else if (funct3 == 0b010) {
 		// lw
 		rsp->regs[rd] = *((uint32_t *) (uint64_t) (rsp->regs[rs1] + imm64));
+	} else if (funct3 == 0b011) {
+		// ld
+		// TODO ask if same logic for ld as for lw ?
+		rsp->regs[rd] = *((uint64_t *) (uint64_t) (rsp->regs[rs1] + imm64));
 	} else if (funct3 == 0b101) {
 		// srli
 		rsp->regs[rd] = rsp->regs[rs1] >> imm64;
@@ -157,11 +162,15 @@ void emu_r_type(struct rv_state_st *rsp, uint32_t iw) {
 		// sub
 		rsp->regs[rd] = rsp->regs[rs1] - rsp->regs[rs2];
 	} else if (funct3 == 0b001 && funct7 == 0b0000000) {
-		// sll
+		// sll & sllw
 		rsp->regs[rd] = rsp->regs[rs1] << rsp->regs[rs2];
 	} else if (funct3 == 0b101 && funct7 == 0b0000000) {
-		// srl
+		// srl & srlw
 		rsp->regs[rd] = rsp->regs[rs1] >> rsp->regs[rs2];
+	} else if (funct3 == 0b101 && funct7 == 0b0100000) {
+		// sra & sraw
+		// TODO test if cast works correctly
+		rsp->regs[rd] = (int64_t) (rsp->regs[rs1] >> rsp->regs[rs2]);
 	} else if (funct3 == 0b000 && funct7 == 0b0000001) {
 		// mul
 		rsp->regs[rd] = rsp->regs[rs1] * rsp->regs[rs2];
