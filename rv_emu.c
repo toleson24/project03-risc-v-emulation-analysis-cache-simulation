@@ -62,8 +62,14 @@ void emu_b_type(struct rv_state_st *rsp, uint32_t iw) {
 	uint32_t imm32 = (imm12 << 12) | (imm11 << 11) | (imm10_5 << 5) | (imm4_1 << 1);	
 	int64_t imm64 = sign_extend(imm32, 12);
 	
-	// TODO implement beq
-	if (funct3 == 0b001) {
+	if (funct3 == 0b000) {
+		// beq
+		if ((int64_t) rsp->regs[rs1] == (int64_t) rsp->regs[rs2]) {
+			rsp->pc += imm64;
+		} else {
+			rsp->pc += 4;
+		}
+	} else if (funct3 == 0b001) {
 		// bne
 		if ((int64_t) rsp->regs[rs1] != (int64_t) rsp->regs[rs2]) {
 			rsp->pc += imm64;
@@ -78,7 +84,7 @@ void emu_b_type(struct rv_state_st *rsp, uint32_t iw) {
 			rsp->pc += 4;
 		}
 	} else if (funct3 == 0b101) {
-		//bge
+		// bge & ble
 		if ((int64_t) rsp->regs[rs1] >= (int64_t) rsp->regs[rs2]) {
 			rsp->pc += imm64;
 		} else {
