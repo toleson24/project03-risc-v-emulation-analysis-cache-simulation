@@ -195,13 +195,13 @@ void emu_r_type(struct rv_state_st *rsp, uint32_t iw) {
 		// sub
 		rsp->regs[rd] = rsp->regs[rs1] - rsp->regs[rs2];
 	} else if (funct3 == 0b001 && funct7 == 0b0000000) {
-		// sll & sllw
+		// sll
 		rsp->regs[rd] = rsp->regs[rs1] << rsp->regs[rs2];
 	} else if (funct3 == 0b101 && funct7 == 0b0000000) {
-		// srl & srlw
+		// srl
 		rsp->regs[rd] = rsp->regs[rs1] >> rsp->regs[rs2];
 	} else if (funct3 == 0b101 && funct7 == 0b0100000) {
-		// sra & sraw
+		// sra
 		// TODO test if cast works correctly
 		rsp->regs[rd] = (int64_t) (rsp->regs[rs1] >> rsp->regs[rs2]);
 	} else if (funct3 == 0b000 && funct7 == 0b0000001) {
@@ -217,6 +217,28 @@ void emu_r_type(struct rv_state_st *rsp, uint32_t iw) {
 	rsp->pc += 4;
 }
 
+void emu_r_shift(struct rv_state_st *rsp, uint32_t iw) {
+	uint32_t rd = get_bits(iw, 7, 5);
+	uint32_t rs1 = get_bits(iw, 15, 5);
+	uint32_t rs2 = get_bits(iw, 20, 5);
+	uint32_t funct3 = get_bits(iw, 12, 3);
+	uint32_t funct7 = get_bits(iw, 25, 7);
+	
+	if (funct3 == 0b001 && funct7 == 0b0000000) {
+		// sllw
+		rsp->regs[rd] = rsp->regs[rs1] << rsp->regs[rs2];
+	} else if (funct3 == 0b101 && funct7 == 0b0000000) {
+		// srlw
+		rsp->regs[rd] = rsp->regs[rs1] >> rsp->regs[rs2];
+	} else if (funct3 == 0b101 && funct7 == 0b0100000) {
+		// sraw
+		// TODO test if cast works correctly
+		rsp->regs[rd] = (int64_t) (rsp->regs[rs1] >> rsp->regs[rs2]);
+	} else {
+		unsupported("R-type (shift word) funct3", funct3);
+	}
+}
+
 void emu_s_type(struct rv_state_st *rsp, uint32_t iw) {
 	uint32_t rs1 = get_bits(iw, 15, 5);
 	uint32_t rs2 = get_bits(iw, 20, 5);
@@ -228,19 +250,19 @@ void emu_s_type(struct rv_state_st *rsp, uint32_t iw) {
 	uint32_t imm32 = (imm11_5 << 5) | imm4_0;	
 	int64_t imm64 = sign_extend(imm32, 11);
 	
-	uint64_t addr = rsp->regs[rs2] + imm64;
+	uint64_t addr = rsp->regs[rs1] + imm64;
 	if (funct3 == 0b000) {
 		// sb
-		//*((uint8_t *) addr) = rsp->regs[rs1] & 0xFF;
-		*((uint8_t *) (rsp->regs[rs2] + imm64)) = rsp->regs[rs1] & 0xFF;
+		*((uint8_t *) addr) = rsp->regs[rs2] & 0xFF;
+		//*((uint8_t *) (rsp->regs[rs2] + imm64)) = rsp->regs[rs1]; // & 0xFF;
 	} else if (funct3 == 0b0101) {
 		// sw
 		//*((uint32_t *) addr) = rsp->regs[rs1] & 0xFFFFFFFF;
-		*((uint32_t *) (rsp->regs[rs2] + imm64)) = rsp->regs[rs1] & 0xFFFFFFFF;
+		*((uint32_t *) (rsp->regs[rs2] + imm64)) = rsp->regs[rs1]; // & 0xFFFFFFFF;
 	} else if (funct3 == 0b011) {
 		// sd
 		//*((uint64_t *) addr) = rsp->regs[rs1] & 0xFFFFFFFFFFFFFFFF;
-		*((uint64_t *) (rsp->regs[rs2] + imm64)) = rsp->regs[rs1] & 0xFFFFFFFFFFFFFFFF;
+		*((uint64_t *) (rsp->regs[rs2] + imm64)) = rsp->regs[rs1]; // & 0xFFFFFFFFFFFFFFFF;
 	} else {
 		unsupported("S-type funct3", funct3);
 	}
@@ -280,6 +302,10 @@ static void rv_one(struct rv_state_st *rsp) {
 			break;
 		case FMT_R:
 			emu_r_type(rsp, iw);
+			rsp->analysis.i_count += 1;
+			break;
+		case FMT_R_SHIFT:
+			emu_r_shift(rsp, iw);
 			rsp->analysis.i_count += 1;
 			break;
 		case FMT_S:
