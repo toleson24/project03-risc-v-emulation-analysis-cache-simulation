@@ -10,9 +10,9 @@ uint32_t get_bits(uint64_t num, uint32_t start, uint32_t count) {
 
 int64_t sign_extend(uint64_t num, uint32_t start) {
 	num = num << (64 - start);
-	int64_t x = ((int64_t) num >> (64 - start));
+	int64_t sign_ext_num = ((int64_t) num >> (64 - start));
 	
-	return x;
+	return sign_ext_num;
 }
 
 bool get_bit(uint64_t num, uint32_t which) {
