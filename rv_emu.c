@@ -254,15 +254,15 @@ void emu_s_type(struct rv_state_st *rsp, uint32_t iw) {
 	if (funct3 == 0b000) {
 		// sb
 		*((uint8_t *) addr) = rsp->regs[rs2] & 0xFF;
-		//*((uint8_t *) (rsp->regs[rs2] + imm64)) = rsp->regs[rs1]; // & 0xFF;
+		//*((uint8_t *) (rsp->regs[rs1] + imm64)) = rsp->regs[rs2]; // & 0xFF;
 	} else if (funct3 == 0b0101) {
 		// sw
-		//*((uint32_t *) addr) = rsp->regs[rs1] & 0xFFFFFFFF;
-		*((uint32_t *) (rsp->regs[rs2] + imm64)) = rsp->regs[rs1]; // & 0xFFFFFFFF;
+		//*((uint32_t *) addr) = rsp->regs[rs2] & 0xFFFFFFFF;
+		*((uint32_t *) (rsp->regs[rs1] + imm64)) = rsp->regs[rs2]; // & 0xFFFFFFFF;
 	} else if (funct3 == 0b011) {
 		// sd
-		//*((uint64_t *) addr) = rsp->regs[rs1] & 0xFFFFFFFFFFFFFFFF;
-		*((uint64_t *) (rsp->regs[rs2] + imm64)) = rsp->regs[rs1]; // & 0xFFFFFFFFFFFFFFFF;
+		//*((uint64_t *) addr) = rsp->regs[rs2] & 0xFFFFFFFFFFFFFFFF;
+		*((uint64_t *) (rsp->regs[rs1] + imm64)) = rsp->regs[rs2]; // & 0xFFFFFFFFFFFFFFFF;
 	} else {
 		unsupported("S-type funct3", funct3);
 	}
