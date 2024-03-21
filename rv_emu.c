@@ -113,22 +113,12 @@ void emu_i_type(struct rv_state_st *rsp, uint32_t iw) {
 
 	if (funct3 == 0b000) {
 		// addi
-		// TODO ask if same logic for lb for addi ?
 		rsp->regs[rd] = rsp->regs[rs1] + imm64;
 		rsp->analysis.ir_count += 1;
 	} else if (funct3 == 0b001) {
 		// slli
 		rsp->regs[rd] = rsp->regs[rs1] << imm64;	
 		rsp->analysis.ir_count += 1;
-	} else if (funct3 == 0b010) {
-		// lw
-		rsp->regs[rd] = *((uint32_t *) (uint64_t) (rsp->regs[rs1] + imm64));
-		rsp->analysis.ld_count += 1;
-	} else if (funct3 == 0b011) {
-		// ld
-		// TODO ask if same logic for ld as for lw ?
-		rsp->regs[rd] = *((uint64_t *) (uint64_t) (rsp->regs[rs1] + imm64));
-		rsp->analysis.ld_count += 1;
 	} else if (funct3 == 0b101) {
 		// srli
 		rsp->regs[rd] = rsp->regs[rs1] >> imm64;
@@ -139,6 +129,33 @@ void emu_i_type(struct rv_state_st *rsp, uint32_t iw) {
 		rsp->analysis.ir_count += 1;
 	} else {
 		unsupported("I-type funct3", funct3);
+	}
+	rsp->pc += 4;
+}
+
+// TODO note about i-type but load usage
+void emu_l_type(struct rv_state_st *rsp, uint32_t iw) {
+	uint32_t rd = get_bits(iw, 7, 5);
+	uint32_t rs1 = get_bits(iw, 15, 5);
+	uint32_t funct3 = get_bits(iw, 12, 3);
+
+	uint64_t imm11_0 = get_bits(iw, 20, 12);
+	int64_t imm64 = sign_extend(imm11_0, 12);
+
+	if (funct3 == 0b000) {
+		// lb
+		rsp->regs[rd] = *((uint8_t *) (uint8_t) (rsp->regs[rs1] + imm64));
+		rsp->analysis.ir_count += 1;
+	} else if (funct3 == 0b010) {
+		// lw
+		rsp->regs[rd] = *((uint32_t *) (uint64_t) (rsp->regs[rs1] + imm64));
+		rsp->analysis.ld_count += 1;
+	} else if (funct3 == 0b011) {
+		// ld
+		rsp->regs[rd] = *((uint64_t *) (uint64_t) (rsp->regs[rs1] + imm64));
+		rsp->analysis.ld_count += 1;
+	} else {
+		unsupported("I-type (load) funct3", funct3);
 	}
 	rsp->pc += 4;
 }
@@ -158,7 +175,7 @@ void emu_j_type(struct rv_state_st *rsp, uint32_t iw) {
 	uint64_t imm19_12 = get_bits(iw, 12, 8);	
 	
 	uint64_t imm21 = (imm20 << 20) | (imm19_12 << 12) | (imm11 << 11) | (imm10_1 << 1);
-	uint64_t j = sign_extend(imm21, 20);
+	uint64_t j = sign_extend(imm21, 20); // int64_t
 	
 	rsp->analysis.j_count += 1;
 	rsp->pc += j;
