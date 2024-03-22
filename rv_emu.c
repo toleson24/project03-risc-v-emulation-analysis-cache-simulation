@@ -114,19 +114,15 @@ void emu_i_type(struct rv_state_st *rsp, uint32_t iw) {
 	if (funct3 == 0b000) {
 		// addi
 		rsp->regs[rd] = rsp->regs[rs1] + imm64;
-		rsp->analysis.ir_count += 1;
 	} else if (funct3 == 0b001) {
 		// slli
 		rsp->regs[rd] = rsp->regs[rs1] << imm64;	
-		rsp->analysis.ir_count += 1;
 	} else if (funct3 == 0b101) {
 		// srli
 		rsp->regs[rd] = rsp->regs[rs1] >> imm64;
-		rsp->analysis.ir_count += 1;
 	} else if (funct3 == 0b101 && (imm11_0 >> 5) == 0b0100000) {
 		// srai
 		rsp->regs[rd] = (int64_t) (((int32_t) rsp->regs[rs1]) >> imm64);
-		rsp->analysis.ir_count += 1;
 	} else {
 		unsupported("I-type funct3", funct3);
 	}
@@ -145,15 +141,12 @@ void emu_l_type(struct rv_state_st *rsp, uint32_t iw) {
 	if (funct3 == 0b000) {
 		// lb
 		rsp->regs[rd] = *((uint8_t *) (rsp->regs[rs1] + imm64));
-		rsp->analysis.ir_count += 1;
 	} else if (funct3 == 0b010) {
 		// lw
 		rsp->regs[rd] = *((uint32_t *) (uint64_t) (rsp->regs[rs1] + imm64));
-		rsp->analysis.ld_count += 1;
 	} else if (funct3 == 0b011) {
 		// ld
 		rsp->regs[rd] = *((uint64_t *) (uint64_t) (rsp->regs[rs1] + imm64));
-		rsp->analysis.ld_count += 1;
 	} else {
 		unsupported("I-type (load) funct3", funct3);
 	}
@@ -164,7 +157,6 @@ void emu_jalr(struct rv_state_st *rsp, uint32_t iw) {
     uint32_t rs1 = (iw >> 15) & 0b1111;
     uint64_t val = rsp->regs[rs1];
 
-	rsp->analysis.j_count += 1;
     rsp->pc = val;
 }
 
@@ -177,7 +169,6 @@ void emu_j_type(struct rv_state_st *rsp, uint32_t iw) {
 	uint64_t imm21 = (imm20 << 20) | (imm19_12 << 12) | (imm11 << 11) | (imm10_1 << 1);
 	int64_t j = sign_extend(imm21, 20);
 	
-	rsp->analysis.j_count += 1;
 	rsp->pc += j;
 }
 
@@ -213,7 +204,6 @@ void emu_r_type(struct rv_state_st *rsp, uint32_t iw) {
 	} else {
         unsupported("R-type funct3", funct3);
 	}
-	rsp->analysis.ir_count += 1;
 	rsp->pc += 4;
 }
 
@@ -239,6 +229,7 @@ void emu_r_shift(struct rv_state_st *rsp, uint32_t iw) {
 	} else {
 		unsupported("R-type (shift word) funct3", funct3);
 	}
+	rsp->pc += 4;
 }
 
 void emu_s_type(struct rv_state_st *rsp, uint32_t iw) {
@@ -265,7 +256,6 @@ void emu_s_type(struct rv_state_st *rsp, uint32_t iw) {
 	} else {
 		unsupported("S-type funct3", funct3);
 	}
-	rsp->analysis.st_count += 1;
 	rsp->pc += 4;
 }
 
@@ -281,35 +271,34 @@ static void rv_one(struct rv_state_st *rsp) {
 	switch (opcode) {
 		case FMT_B:
 			emu_b_type(rsp, iw);
-			rsp->analysis.i_count += 1;
 			break;
 		case FMT_I_LOAD:
 			emu_l_type(rsp, iw);
-			rsp->analysis.i_count += 1;
+			rsp->analysis.ld_count += 1;
 			break;
 		case FMT_I_ARITH:
 			emu_i_type(rsp, iw);
-			rsp->analysis.i_count += 1;
+			rsp->analysis.ir_count += 1;
 			break;
 		case FMT_I_JALR:
 			emu_jalr(rsp, iw);
-			rsp->analysis.i_count += 1;
+			rsp->analysis.j_count += 1;
 			break;
 		case FMT_J:
 			emu_j_type(rsp, iw);
-			rsp->analysis.i_count += 1;
+			rsp->analysis.j_count += 1;
 			break;
 		case FMT_R:
 			emu_r_type(rsp, iw);
-			rsp->analysis.i_count += 1;
+			rsp->analysis.ir_count += 1;
 			break;
 		case FMT_R_SHIFT:
 			emu_r_shift(rsp, iw);
-			rsp->analysis.i_count += 1;
+			rsp->analysis.ir_count += 1;
 			break;
 		case FMT_S:
 			emu_s_type(rsp, iw);
-			rsp->analysis.i_count += 1;
+			rsp->analysis.st_count += 1;
 			break;
 		default:
 			unsupported("Unknown opcode: ", opcode);  
@@ -319,6 +308,7 @@ static void rv_one(struct rv_state_st *rsp) {
 uint64_t rv_emulate(struct rv_state_st *rsp) {
     while (rsp->pc != RV_STOP) {
         rv_one(rsp);
+		rsp->analysis.i_count += 1;
     }
     return rsp->regs[RV_A0];
 }
