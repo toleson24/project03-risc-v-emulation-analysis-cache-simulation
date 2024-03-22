@@ -226,10 +226,10 @@ void emu_r_shift(struct rv_state_st *rsp, uint32_t iw) {
 	
 	if (funct3 == 0b001 && funct7 == 0b0000000) {
 		// sllw
-		rsp->regs[rd] = (int32_t) (rsp->regs[rs1] << rsp->regs[rs2]);
+		rsp->regs[rd] = (int64_t) (rsp->regs[rs1] << rsp->regs[rs2]);
 	} else if (funct3 == 0b101 && funct7 == 0b0000000) {
 		// srlw
-		rsp->regs[rd] = (int32_t) (rsp->regs[rs1] >> rsp->regs[rs2]);
+		rsp->regs[rd] = (int64_t) (rsp->regs[rs1] >> rsp->regs[rs2]);
 	} else if (funct3 == 0b101 && funct7 == 0b0100000) {
 		// sraw
 		rsp->regs[rd] = (int64_t) (rsp->regs[rs1] >> rsp->regs[rs2]);
@@ -255,7 +255,7 @@ void emu_s_type(struct rv_state_st *rsp, uint32_t iw) {
 		*((uint8_t *) addr) = rsp->regs[rs2] & 0xFF;
 	} else if (funct3 == 0b010) {
 		// sw
-		*((uint32_t *) addr) = rsp->regs[rs2] & 0xFFFFFF; // & 0xFFFFFFFF;
+		*((uint32_t *) addr) = rsp->regs[rs2] & 0xFFFFFFFF;
 	} else if (funct3 == 0b011) {
 		// sd
 		*((uint64_t *) addr) = rsp->regs[rs2]; // & 0xFFFFFFFFFFFFFFFF;
