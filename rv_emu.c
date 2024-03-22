@@ -61,45 +61,42 @@ void emu_b_type(struct rv_state_st *rsp, uint32_t iw) {
 
 	uint32_t imm32 = (imm12 << 12) | (imm11 << 11) | (imm10_5 << 5) | (imm4_1 << 1);	
 	int64_t imm64 = sign_extend(imm32, 12);
-	
+
+	bool no_break = true;	
 	if (funct3 == 0b000) {
 		// beq
 		if ((int64_t) rsp->regs[rs1] == (int64_t) rsp->regs[rs2]) {
 			rsp->pc += imm64;
 			rsp->analysis.b_taken += 1;
-		} else {
-			rsp->pc += 4;
-			rsp->analysis.b_not_taken += 1;
+			no_break = false;
 		}
 	} else if (funct3 == 0b001) {
 		// bne
 		if ((int64_t) rsp->regs[rs1] != (int64_t) rsp->regs[rs2]) {
 			rsp->pc += imm64;
 			rsp->analysis.b_taken += 1;
-		} else {
-			rsp->pc += 4;
-			rsp->analysis.b_not_taken += 1;
+			no_break = false;
 		}
 	} else if (funct3 == 0b100) {
 		// blt & bgt
 		if ((int64_t) rsp->regs[rs1] < (int64_t) rsp->regs[rs2]) {
 			rsp->pc += imm64;
 			rsp->analysis.b_taken += 1;
-		} else {
-			rsp->pc += 4;
-			rsp->analysis.b_not_taken += 1;
+			no_break = false;
 		}
 	} else if (funct3 == 0b101) {
 		// bge & ble
 		if ((int64_t) rsp->regs[rs1] >= (int64_t) rsp->regs[rs2]) {
 			rsp->pc += imm64;
 			rsp->analysis.b_taken += 1;
-		} else {
-			rsp->pc += 4;
-			rsp->analysis.b_not_taken += 1;
+			no_break = false;
 		}
 	} else {
 		unsupported("B-type funct3", funct3);
+	}
+	if (no_break) {
+		rsp->pc += 4;
+		rsp->analysis.b_not_taken += 1;
 	}
 }
 
