@@ -175,7 +175,7 @@ void emu_j_type(struct rv_state_st *rsp, uint32_t iw) {
 	uint64_t imm19_12 = get_bits(iw, 12, 8);	
 	
 	uint64_t imm21 = (imm20 << 20) | (imm19_12 << 12) | (imm11 << 11) | (imm10_1 << 1);
-	uint64_t j = sign_extend(imm21, 20); // int64_t
+	int64_t j = sign_extend(imm21, 20); // int64_t
 	
 	rsp->analysis.j_count += 1;
 	rsp->pc += j;
@@ -254,14 +254,14 @@ void emu_s_type(struct rv_state_st *rsp, uint32_t iw) {
 		// sb
 		*((uint8_t *) addr) = rsp->regs[rs2] & 0xFF;
 		//*((uint8_t *) (rsp->regs[rs1] + imm64)) = rsp->regs[rs2]; // & 0xFF;
-	} else if (funct3 == 0b0101) {
+	} else if (funct3 == 0b010) {
 		// sw
-		//*((uint32_t *) addr) = rsp->regs[rs2] & 0xFFFFFFFF;
-		*((uint32_t *) (rsp->regs[rs1] + imm64)) = rsp->regs[rs2]; // & 0xFFFFFFFF;
+		*((uint32_t *) addr) = rsp->regs[rs2] & 0xFFFFFF; // & 0xFFFFFFFF;
+		//*((uint32_t *) (rsp->regs[rs1] + imm64)) = rsp->regs[rs2] & 0xFFFFFF; // & 0xFFFFFFFF;
 	} else if (funct3 == 0b011) {
 		// sd
-		//*((uint64_t *) addr) = rsp->regs[rs2] & 0xFFFFFFFFFFFFFFFF;
-		*((uint64_t *) (rsp->regs[rs1] + imm64)) = rsp->regs[rs2]; // & 0xFFFFFFFFFFFFFFFF;
+		*((uint64_t *) addr) = rsp->regs[rs2]; // & 0xFFFFFFFFFFFFFFFF;
+		//*((uint64_t *) (rsp->regs[rs1] + imm64)) = rsp->regs[rs2]; // & 0xFFFFFFFFFFFFFFFF;
 	} else {
 		unsupported("S-type funct3", funct3);
 	}
