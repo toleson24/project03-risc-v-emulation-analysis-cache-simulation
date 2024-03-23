@@ -127,7 +127,6 @@ uint32_t cache_lookup_dm(struct cache_st *csp, uint64_t addr) {
 			data = *((uint32_t *) addr);
        		slot->block[b_index] = data;
 		}
->>>>>>> d939363 (updated files:)
     }
     
     return data;
