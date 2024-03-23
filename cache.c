@@ -84,8 +84,11 @@ uint32_t cache_lookup_dm(struct cache_st *csp, uint64_t addr) {
     uint32_t data = 0;
 	
 	if (csp->block_size > 1) {
-		// TODO
-		b_index = 0;
+		// TODO verify logic
+		uint32_t addr_word = addr / 4;
+		b_index = addr % 4;
+		b_base = addr_word - b_index;
+		//b_index = (addr >> 2) & 0b11;
 	} else {
     	b_index = 0;
 	}
@@ -119,14 +122,15 @@ uint32_t cache_lookup_dm(struct cache_st *csp, uint64_t addr) {
         slot->valid = 1;
         slot->tag = tag;
 
-        if (csp->block_size > 1) {
-			// TODO
+		// TODO understand logic
+        /*if (csp->block_size > 1) {
+			data = *((uint32_t *) (b_base * 4) + addr);
+			//data = *((uint32_t *) (addr - b_index));
+       		slot->block[b_index] = data;
+		} else {*/
 			data = *((uint32_t *) addr);
        		slot->block[b_index] = data;
-		} else {
-			data = *((uint32_t *) addr);
-       		slot->block[b_index] = data;
-		}
+		//}
     }
     
     return data;
