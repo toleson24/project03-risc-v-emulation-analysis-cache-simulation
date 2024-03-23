@@ -82,8 +82,13 @@ uint32_t cache_lookup_dm(struct cache_st *csp, uint64_t addr) {
     uint64_t b_base;
     struct cache_slot_st *slot;
     uint32_t data = 0;
-
-    b_index = 0; // Need to change for block size > 1
+	
+	if (csp->block_size > 1) {
+		// TODO
+		b_index = 0;
+	} else {
+    	b_index = 0;
+	}
     index = (addr >> (csp->block_bits + 2)) & csp->index_mask;
     tag = addr >> (csp->index_bits + csp->block_bits + 2);
 
@@ -114,9 +119,14 @@ uint32_t cache_lookup_dm(struct cache_st *csp, uint64_t addr) {
         slot->valid = 1;
         slot->tag = tag;
 
-        // Need to change for block size > 1
-        data = *((uint32_t *) addr);
-        slot->block[b_index] = data;
+        if (csp->block_size > 1) {
+			// TODO
+			data = *((uint32_t *) addr);
+       		slot->block[b_index] = data;
+		} else {
+			data = *((uint32_t *) addr);
+       		slot->block[b_index] = data;
+		}
     }
     
     return data;
