@@ -194,7 +194,7 @@ void emu_r_type(struct rv_state_st *rsp, uint32_t iw) {
 		rsp->regs[rd] = rsp->regs[rs1] >> rsp->regs[rs2];
 	} else if (funct3 == 0b101 && funct7 == 0b0100000) {
 		// sra
-		rsp->regs[rd] = rsp->regs[rs1] >> rsp->regs[rs2];
+		rsp->regs[rd] = (int64_t) rsp->regs[rs1] >> rsp->regs[rs2];
 	} else if (funct3 == 0b000 && funct7 == 0b0000001) {
 		// mul
 		rsp->regs[rd] = rsp->regs[rs1] * rsp->regs[rs2];
