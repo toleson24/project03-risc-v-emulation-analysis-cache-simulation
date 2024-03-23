@@ -258,7 +258,7 @@ void emu_s_type(struct rv_state_st *rsp, uint32_t iw) {
 
 static void rv_one(struct rv_state_st *rsp) {
 	uint32_t iw = *(uint32_t*) rsp->pc;
-    //iw = cache_lookup(&rsp->i_cache, (uint64_t) rsp->pc);
+	iw = cache_lookup(&rsp->i_cache, (uint64_t) rsp->pc);
 
 #if DEBUG
     printf("iw: %08x\n", iw);
