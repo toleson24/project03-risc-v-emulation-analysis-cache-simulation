@@ -171,7 +171,7 @@ uint32_t cache_lookup_sa(struct cache_st *csp, uint64_t addr) {
 	if (csp->block_size > 1) {
 		b_index = (addr >> 2) & 0b11;
 	} else {
-    	b_index = 0;
+    	b_index = 1;
 	}
     uint64_t b_base;
     int set_index = (addr >> (csp->block_bits + 2)) & csp->index_mask;
@@ -233,7 +233,7 @@ uint32_t cache_lookup_sa(struct cache_st *csp, uint64_t addr) {
        		slot->block[b_index] = value;
 		}
         // Need to change for block size > 1        
-        slot->block[b_index] = *((uint32_t *) addr);
+//        slot->block[b_index] = *((uint32_t *) addr);
         slot->tag = tag;
         slot->valid = true;
     }
