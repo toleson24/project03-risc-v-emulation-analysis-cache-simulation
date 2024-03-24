@@ -167,7 +167,7 @@ uint32_t cache_lookup_sa(struct cache_st *csp, uint64_t addr) {
 
     uint64_t tag = addr >> (csp->index_bits + csp->block_bits + 2);
 
-    uint64_t b_index = 1; // Need to change for block size > 1
+    uint64_t b_index;
 	if (csp->block_size > 1) {
 		b_index = (addr >> 2) & 0b11;
 	} else {
@@ -208,8 +208,7 @@ uint32_t cache_lookup_sa(struct cache_st *csp, uint64_t addr) {
             // Miss due to tag collision is a "hot" miss
             csp->misses_cold += 1;
         } else {
-            // Always pick first slot in set - CHANGE TO LRU
-            //slot = &(csp->slots[set_base]);
+            // Pick LRU slot
 			slot = find_lru_slot(csp->slots, csp->ways);
 
             verbose("  cache tag (%X) miss for set %d tag %X addr %X (evict address %X)\n",
@@ -231,11 +230,9 @@ uint32_t cache_lookup_sa(struct cache_st *csp, uint64_t addr) {
 		} else {
 			value = *((uint32_t *) addr);
        		slot->block[b_index] = value;
+			slot->tag = tag;
+			slot->valid = true;
 		}
-        // Need to change for block size > 1        
-//        slot->block[b_index] = *((uint32_t *) addr);
-        slot->tag = tag;
-        slot->valid = true;
     }
 
     value = slot->block[b_index];        
