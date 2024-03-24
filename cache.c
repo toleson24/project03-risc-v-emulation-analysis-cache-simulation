@@ -132,6 +132,24 @@ uint32_t cache_lookup_dm(struct cache_st *csp, uint64_t addr) {
     return data;
 }
 
+struct cache_slot_st * find_lru_slot(struct cache_slot_st *ssp, int ways) {
+	struct cache_slot_st *first_available;
+	for (int i = 0; i < ways; i++) {
+		if ((ssp + i)->valid == 0) {
+			first_available = ssp + i;
+		}
+	}
+	uint64_t min = 0xFFFFFFFF;
+	int min_index = 0;
+	for (int i = 0; i < ways; i++) {
+		if ((ssp + i)->timestamp < min) {
+			min = (ssp + i)->timestamp;
+			min_index = i;
+		}
+	}
+	return ssp + min_index;
+}
+
 uint32_t cache_lookup_sa(struct cache_st *csp, uint64_t addr) {
     bool hit = false;
     uint32_t value;
@@ -150,7 +168,11 @@ uint32_t cache_lookup_sa(struct cache_st *csp, uint64_t addr) {
     uint64_t tag = addr >> (csp->index_bits + csp->block_bits + 2);
 
     uint64_t b_index = 1; // Need to change for block size > 1
-
+	if (csp->block_size > 1) {
+		b_index = (addr >> 2) & 0b11;
+	} else {
+    	b_index = 0;
+	}
     uint64_t b_base;
     int set_index = (addr >> (csp->block_bits + 2)) & csp->index_mask;
     int set_base = set_index * csp->ways;
@@ -187,7 +209,8 @@ uint32_t cache_lookup_sa(struct cache_st *csp, uint64_t addr) {
             csp->misses_cold += 1;
         } else {
             // Always pick first slot in set - CHANGE TO LRU
-            slot = &(csp->slots[set_base]);
+            //slot = &(csp->slots[set_base]);
+			slot = find_lru_slot(csp->slots, csp->ways);
 
             verbose("  cache tag (%X) miss for set %d tag %X addr %X (evict address %X)\n",
                     slot->tag, set_index, tag, addr, 
@@ -200,6 +223,15 @@ uint32_t cache_lookup_sa(struct cache_st *csp, uint64_t addr) {
     }
 
     if (!hit) {
+		if (csp->block_size > 1) {
+			for (int i = 0; i < csp->block_size; i++) {
+				slot->block[i] = *((uint32_t *) (addr + (i * 4)));	
+			}	
+			value = slot->block[b_index];
+		} else {
+			value = *((uint32_t *) addr);
+       		slot->block[b_index] = value;
+		}
         // Need to change for block size > 1        
         slot->block[b_index] = *((uint32_t *) addr);
         slot->tag = tag;
