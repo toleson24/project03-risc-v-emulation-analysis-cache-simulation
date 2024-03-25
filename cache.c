@@ -136,7 +136,8 @@ struct cache_slot_st * find_lru_slot(struct cache_slot_st *ssp, int ways) {
 	struct cache_slot_st *first_available;
 	for (int i = 0; i < ways; i++) {
 		if ((ssp + i)->valid == 0) {
-			first_available = ssp + i;
+			return (ssp + i);
+//			first_available = ssp + i;
 //			return first_available;
 		}
 	}
@@ -210,7 +211,7 @@ uint32_t cache_lookup_sa(struct cache_st *csp, uint64_t addr) {
             csp->misses_cold += 1;
         } else {
             // Pick LRU slot
-			slot = find_lru_slot(csp->slots, csp->ways);
+			slot = find_lru_slot(&csp->slots[set_base], csp->ways);
 
             verbose("  cache tag (%X) miss for set %d tag %X addr %X (evict address %X)\n",
                     slot->tag, set_index, tag, addr, 
@@ -236,7 +237,7 @@ uint32_t cache_lookup_sa(struct cache_st *csp, uint64_t addr) {
 		}
     }
 
-    value = slot->block[b_index];        
+	value = slot->block[b_index];        
 
     slot->timestamp = csp->refs;
     return value;
