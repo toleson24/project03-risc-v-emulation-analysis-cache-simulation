@@ -222,11 +222,12 @@ uint32_t cache_lookup_sa(struct cache_st *csp, uint64_t addr) {
             csp->misses_hot += 1;
         }
     }
+	
 
     if (!hit) {
 		if (csp->block_size > 1) {
 			for (int i = 0; i < csp->block_size; i++) {
-				slot->block[i] = *((uint32_t *) (addr + (i * 4)));	
+				slot->block[b_index + i] = *((uint32_t *) (addr + (i * 4)));	
 			}	
 			value = slot->block[b_index];
 		} else {
