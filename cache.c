@@ -137,6 +137,7 @@ struct cache_slot_st * find_lru_slot(struct cache_slot_st *ssp, int ways) {
 	for (int i = 0; i < ways; i++) {
 		if ((ssp + i)->valid == 0) {
 			first_available = ssp + i;
+//			return first_available;
 		}
 	}
 	uint64_t min = 0xFFFFFFFF;
@@ -147,7 +148,7 @@ struct cache_slot_st * find_lru_slot(struct cache_slot_st *ssp, int ways) {
 			min_index = i;
 		}
 	}
-	return ssp + min_index;
+	return (ssp + min_index);
 }
 
 uint32_t cache_lookup_sa(struct cache_st *csp, uint64_t addr) {
