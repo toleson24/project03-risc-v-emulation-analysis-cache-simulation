@@ -7,24 +7,24 @@ This repository is a continuation of Lab05, in which a subset of RISC-V instruct
 
 > 1. Write an emulator in C for a subset of the RISC-V Instruction Set Architecture (ISA).
 > 2. Emulate the instructions required for the following programs:
-> 	- quadratic_s
->	- midpoint_s
->	- max3_s
-> 	- to_upper
-> 	- get_bitseq_s
-> 	- get_bitseq_signed_s
-> 	- swap_s
-> 	- sort_s
-> 	- fib_rec_s 
-> 3. Continue the logic (decoding and emulating instructions) and state (struct rv_state_st) from Lab05.
+> 	- `quadratic_s`
+>	- `midpoint_s`
+>	- `max3_s`
+> 	- `to_upper`
+> 	- `get_bitseq_s`
+> 	- `get_bitseq_signed_s`
+> 	- `swap_s`
+> 	- `sort_s`
+> 	- `fib_rec_s`  
+> 3. Continue the logic (decoding and emulating instructions) and state (`struct rv_state_st`) from Lab05.
 > 4. Support Dynamic Analysis of instruction execution with the following metrics:
-> 	- number of instructions executed (i_count)
-> 	- number of I-type and R-type instructions executed (ir_count)
-> 	- number of LOAD instructions executed (ld_count)
-> 	- number of STORE instructions executed (st_count)
-> 	- number of jump instructions executed including j, jal, jalr (j_count)
-> 	- number of conditional branches taken (b_taken)
-> 	- number of conditional branches not taken (b_not_taken)
+> 	- number of instructions executed (`i_count`)
+> 	- number of I-type and R-type instructions executed (`ir_count`)
+> 	- number of LOAD instructions executed (`ld_count`)
+> 	- number of STORE instructions executed (`st_count`)
+> 	- number of jump instructions executed including `j`, `jal`, `jalr` (`j_count`)
+> 	- number of conditional branches taken (`b_taken`)
+> 	- number of conditional branches not taken (`b_not_taken`)
 > 5. Implement a processor cache simulator for the following cache types:
 > 	- direct mapped cache with a block size on 1 word (given)
 > 	- direct mapped cache with a block size of 4 words
@@ -90,4 +90,6 @@ To test and print the metrics for processor cache simulation, us the `-dm`, and 
 >
 > The `-sa` flag takes three arguments: slots, block size, and ways  
 > `./program03 -sa 32 1 4 quadratic 2 4 6 8`
+>  
+> For verbose cache printing, use the `-v` flag.
 
