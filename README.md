@@ -55,18 +55,22 @@ gcc -g -c -o bits.o bits.c
 
 To compile the C and Assembly test programs, run
 
-```bash as -g -o quadratic_s.o quadratic_s.s```
+```bash
+as -g -o quadratic_s.o quadratic_s.s
+```
 
 for the Assembly test program, and run
 
-```bash gcc -g -c -o quadratic_c.o quadratic_c.c```
+```bash
+gcc -g -c -o quadratic_c.o quadratic_c.c
+```
 
 for the C test program.
 
 To create the main test program, run
 
 ```bash
-		gcc -g -o project03.o rv_emu.o cache.o verbose.o bits.o quadratic_c.o quadratic_s.o
+gcc -g -o project03.o rv_emu.o cache.o verbose.o bits.o quadratic_c.o quadratic_s.o
 ``` 
 >  Note: include all `.o` files that will be tested in this command.
 
