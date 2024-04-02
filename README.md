@@ -45,7 +45,7 @@ For general purpose usage, please use the Makefile.
 
 The Makefile will link and compile the primary objects required for running `project03.c` as the main fucntion. For example,
 
-> `gcc -g -c -o project03.o project03.c`  
+> ```bash gcc -g -c -o project03.o project03.c```  
 > `gcc -g -c -o rv_emu.o rv_emu.c`  
 > `gcc -g -c -o cache.o cache.c`  
 > `gcc -g -c -o verbose.o verbose.c`  
