@@ -45,26 +45,29 @@ For general purpose usage, please use the Makefile.
 
 The Makefile will link and compile the primary objects required for running `project03.c` as the main fucntion. For example,
 
-> ```bash gcc -g -c -o project03.o project03.c```  
-> `gcc -g -c -o rv_emu.o rv_emu.c`  
-> `gcc -g -c -o cache.o cache.c`  
-> `gcc -g -c -o verbose.o verbose.c`  
-> `gcc -g -c -o bits.o bits.c`  
+```bash
+gcc -g -c -o project03.o project03.c  
+gcc -g -c -o rv_emu.o rv_emu.c  
+gcc -g -c -o cache.o cache.c  
+gcc -g -c -o verbose.o verbose.c  
+gcc -g -c -o bits.o bits.c  
+```  
 
 To compile the C and Assembly test programs, run
 
-> `as -g -o quadratic_s.o quadratic_s.s`
+```bash as -g -o quadratic_s.o quadratic_s.s```
 
 for the Assembly test program, and run
 
-> `gcc -g -c -o quadratic_c.o quadratic_c.c`
+```bash gcc -g -c -o quadratic_c.o quadratic_c.c```
 
 for the C test program.
 
 To create the main test program, run
 
-> `gcc -g -o project03.o rv_emu.o cache.o verbose.o bits.o quadratic_c.o quadratic_s.o`
->  
+```bash
+		gcc -g -o project03.o rv_emu.o cache.o verbose.o bits.o quadratic_c.o quadratic_s.o
+``` 
 >  Note: include all `.o` files that will be tested in this command.
 
 ### Running
@@ -73,23 +76,30 @@ To create the main test program, run
 
 To test the emulator, run 
 
-> `./program03 quadratic 2 4 6 8`
+```bash
+./program03 quadratic 2 4 6 8
+```
 
 #### Testing the Dynamic Analysis:
 
 To print the Dynamic Analysis for a particular test program, use the `-a` flag
 
-> `./program03 -a quadratic 2 4 6 8` 
+```bash
+./program03 -a quadratic 2 4 6 8
+``` 
 
 #### Testing the processor caching simualtor:
 
 To test and print the metrics for processor cache simulation, us the `-dm`, and `-sa` flags, for direct mapping and set associative caching respectively.
 
-> The `-dm` flag takes two arguments: slots, and block size  
-> `./program03 -dm 32 1 quadratic 2 4 6 8`
->
-> The `-sa` flag takes three arguments: slots, block size, and ways  
-> `./program03 -sa 32 1 4 quadratic 2 4 6 8`
->  
+The `-dm` flag takes two arguments: slots, and block size  
+```bash
+./program03 -dm 32 1 quadratic 2 4 6 8  
+```
+  
+The `-sa` flag takes three arguments: slots, block size, and ways  
+```bash
+./program03 -sa 32 1 4 quadratic 2 4 6 8
+```
 > For verbose cache printing, use the `-v` flag.
 
